@@ -2,6 +2,7 @@ import { type NextApiRequest, type NextApiResponse } from "next";
 import { db } from "~/server/db";
 import { env } from "~/env";
 import { auth } from "~/server/auth";
+import { slugToPythonModuleMap } from "~/pages/problems/utils";
 
 const SubmissionStatus = {
   CHECKING: "CHECKING",
@@ -128,6 +129,7 @@ export default async function handler(
           tests_code: submission.problem.tests,
           reference_code: submission.problem.reference,
           gpu_type: submission.gpuType,
+          problem: slugToPythonModuleMap[submission.problem.slug],
         }),
       }
     );
@@ -330,6 +332,7 @@ export default async function handler(
         body: JSON.stringify({
           solution_code: submission.code,
           tests_code: submission.problem.tests,
+          problem: slugToPythonModuleMap[submission.problem.slug],
           gpu_type: submission.gpuType,
         }),
       }
