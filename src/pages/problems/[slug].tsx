@@ -1399,7 +1399,6 @@ export default function ProblemPage({ slug }: { slug: string }) {
                     onChange={(e) => setSelectedLanguage(e.target.value)}
                     value={selectedLanguage}
                     w="160px"
-                    defaultValue="cuda"
                     borderRadius="full"
                     sx={{
                       "& > option": {
