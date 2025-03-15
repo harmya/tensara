@@ -128,6 +128,27 @@ async def benchmark(gpu: str, request: Request):
             return
 
         runner = gpu_runners[gpu]
+        first_test_passed = False
+
+        checker_stream = runner.remote_gen("checker", benchmark_compiled, problem_name)
+        for event in checker_stream:
+            if event["status"] == "test_result":
+                first_test_passed = event["result"]["status"] == "PASSED"
+                break
+            elif event["status"] == "error":
+                yield event
+                return
+
+        if not first_test_passed:
+            yield {
+                "status": "error",
+                "error": "Sanity check failed",
+                "details": "Solution failed the sanity check. Benchmark aborted. Please fix the solution.",
+            }
+            return
+        
+        yield {"status": "sanity_check", "message": "Sanity check passed, starting benchmark..."}
+
         stream = runner.remote_gen("benchmark", benchmark_compiled, problem_name)
         for event in stream:
             yield event
@@ -135,6 +156,9 @@ async def benchmark(gpu: str, request: Request):
     stream = utils.async_wrap_iter(gen_wrapper(create_stream()))
     return StreamingResponse(stream, media_type="text/event-stream")
 
+@web_app.get("/welcome")
+async def welcome():
+    return {"message": "Welcome to the Tensara Engine!"}
 
 @app.function()
 @modal.asgi_app()

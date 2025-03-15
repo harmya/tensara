@@ -74,11 +74,15 @@ class vector_addition(Problem):
         if not is_close:
             diff = actual_output - expected_output
             max_diff = torch.max(torch.abs(diff)).item()
-            mean_diff = torch.mean(torch.abs(diff)).item()
+            first_diff_index = torch.where(torch.abs(diff) > 1e-5)[0][0].item()
+            actual_next_5_elements = [f"{x:.7f}" for x in actual_output[first_diff_index:first_diff_index+3].tolist()]
+            expected_next_5_elements = [f"{x:.7f}" for x in expected_output[first_diff_index:first_diff_index+3].tolist()]
             
             debug_info = {
-                "max_difference": max_diff,
-                "mean_difference": mean_diff
+                "First index where output differs from expected": first_diff_index,
+                "Actual values at first detected difference": actual_next_5_elements,
+                "Expected values at first detected difference": expected_next_5_elements,
+                "Maximum difference of any two corresponding elements": max_diff
             }
         
         return is_close, debug_info

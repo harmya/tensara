@@ -80,6 +80,18 @@ def run_checker(problem_name: str, compiled: bytes) -> Iterator[str]:
                     test_result["debug_info"] = debug_info
                     
                 test_results.append(test_result)
+
+                if has_failed:
+                    yield {
+                        "status": "complete",
+                        "passed": False,
+                        "test_results": test_results,
+                        "passed_tests": passed_tests,
+                        "total_tests": total_tests,
+                        "early_exit": True,
+                        "reason": f"Test '{test_name}' failed"
+                    }
+                    return
                 
                 yield {
                     "status": "test_result",
@@ -107,6 +119,17 @@ def run_checker(problem_name: str, compiled: bytes) -> Iterator[str]:
                     "result": test_result,
                     "totalTests": total_tests,
                 }
+
+                yield {
+                    "status": "complete",
+                    "passed": False,
+                    "test_results": test_results,
+                    "passed_tests": passed_tests,
+                    "total_tests": total_tests,
+                    "early_exit": True,
+                    "reason": f"Testing stopped early due to exception in test '{test_name}': {str(e)}"
+                }
+                return
         
         # Final status message
         yield {
@@ -186,6 +209,8 @@ def run_benchmark(problem_name: str, compiled_lib: bytes):
                 
                 yield {
                     "status": "benchmark_result",
+                    "test_id": test_id,
+                    "name": test_name,
                     "result": benchmark_result,
                     "totalTests": total_tests,
                 }
@@ -203,13 +228,6 @@ def run_benchmark(problem_name: str, compiled_lib: bytes):
                     "debug_info": {"error": str(e)}
                 }
                 
-                benchmark_results.append(benchmark_result)
-                
-                yield {
-                    "status": "benchmark_result",
-                    "result": benchmark_result,
-                    "totalTests": total_tests,
-                }
         
         test_results = benchmark_results
         test_count = len(test_results)
